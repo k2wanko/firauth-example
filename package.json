@@ -7,8 +7,8 @@
     "firebase": "firebase",
     "serve": "cd backend; dev_appserver.py --skip_sdk_update_check yes -A ${GOOGLE_CLOUD_PROJECT:=k2lab-firauth} --appidentity_email_address dev-app@${GOOGLE_CLOUD_PROJECT:=k2lab-firauth}.iam.gserviceaccount.com --appidentity_private_key_path service_account.pem app.yaml",
     "deploy:firebase": "firebase deploy",
-    "deploy:appengine": "cd backend; appcfg.py -v update --oauth2_access_token $(gcloud auth print-access-token 2> /dev/null) -A ${GOOGLE_CLOUD_PROJECT:=k2lab-firauth} -E SLACK_CLIENT_ID:${SLACK_CLIENT_ID} -E SLACK_CLIENT_SECRET:${SLACK_CLIENT_SECRET} -E SESSION_SECRET:$(base64 /dev/random| head -c 32) --version 1 app.yaml",
-    "export": "echo \"SESSION_SECRET=${SESSION_SECRET}\nSLACK_CLIENT_ID=${SLACK_CLIENT_ID}\nSLACK_CLIENT_SECRET=${SLACK_CLIENT_SECRET}\" > backend/dev.env",
+    "deploy:appengine": "cd backend; appcfg.py -v update --oauth2_access_token $(gcloud auth print-access-token 2> /dev/null) -A ${GOOGLE_CLOUD_PROJECT:=k2lab-firauth} -E SLACK_CLIENT_ID:${SLACK_CLIENT_ID} -E SLACK_CLIENT_SECRET:${SLACK_CLIENT_SECRET} --version 1 app.yaml",
+    "export": "echo \"SLACK_CLIENT_ID=${SLACK_CLIENT_ID}\nSLACK_CLIENT_SECRET=${SLACK_CLIENT_SECRET}\" > backend/dev.env",
     "deploy": "npm run deploy:firebase && npm run deploy:appengine",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

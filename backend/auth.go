@@ -21,7 +21,7 @@ func init() {
 		}
 	}
 
-	store = cascadestore.NewCascadeStore(cascadestore.DistributedBackends, []byte(os.Getenv("SESSION_SECRET")))
+	store = cascadestore.NewCascadeStore(cascadestore.DistributedBackends, []byte(`session secret string.`))
 
 	clientID := os.Getenv("SLACK_CLIENT_ID")
 	clientSecret := os.Getenv("SLACK_CLIENT_SECRET")
