@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Firebase Auth Example</title>
+<meta charset="utf-8">
+<meta name="description" content="k2lab.net">
+<meta name="author" content="k2wanko <k2.wanko@gmail.com>">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!--<link rel="stylesheet" href="">-->
+<script src="https://npmcdn.com/vue@next/dist/vue.js"></script>
+<script src="https://npmcdn.com/vue-resource/dist/vue-resource.js"></script>
+<script src="https://www.gstatic.com/firebasejs/3.4.0/firebase.js"></script>
+<script>
+  // Initialize Firebase
+  var config = {
+    apiKey: "AIzaSyApLGBP2ny0mZoH7N5R2SJJZ96P5juM5As",
+    authDomain: "k2lab-firauth.firebaseapp.com",
+    databaseURL: "https://k2lab-firauth.firebaseio.com",
+    storageBucket: "k2lab-firauth.appspot.com",
+    messagingSenderId: "975150389626"
+  };
+  firebase.initializeApp(config);
+</script>
+<script>
+window.onload = () => {
+  const auth = window.auth = firebase.auth()
+  const vm = window.vm = new Vue({
+    data: function() {
+      return {
+        user: auth.currentUser,
+        idToken: null,
+      }
+    },
+    watch: {
+      user: function(user) {
+        if (!user) {
+          this.idToken = null
+          return
+        }
+        this.fetch("users.info", {user: user.uid}).then(res => {
+          if (!res.ok) {
+            throw new Error(res.error)
+          }
+          const profile = res.user.profile
+          return user.updateProfile({
+            displayName: profile.real_name,
+            photoURL: profile.image_original,
+          })
+        })
+        .catch(this.handleError)
+      }
+    },
+    created: function() {
+    },
+    methods: {
+      signInWithSlack: function() {
+        const width = 600
+        const height = 420
+        const x = (screen.width - width) / 2
+        const y = (screen.height - height) / 2 
+        window.open('/auth', 'auth', `width=${width}, height=${height}, left=${x}, top=${y}, menubar=no, toolbar=no, scrollbars=yes`)
+      },
+      signInWithCustomToken: function(token) {
+        return auth.signInWithCustomToken(token)
+          .then( user => {
+            return this.user = user
+          })
+          .catch(this.handleError)
+      },
+      signOut: function() {
+        return auth.signOut().then( () => {
+          return this.user = null
+        })
+        .catch(this.handleError)
+      },
+      getToken: function() {
+        if (!this.user) {
+          return Promise.reject(new Error("No Auth"))
+        }
+        return this.user.getToken().then(token => {
+          this.idToken = token
+          Vue.http.headers.common['Authorization'] = "Bearer " + token
+          return token
+        })
+      },
+      fetch: function(method, args) {
+        return this.getToken().then(token => {
+          const q = []
+          let k
+          for (k in args) {
+            if (!args.hasOwnProperty(k)) {
+              continue
+            }
+            q.push(encodeURIComponent(k) + "=" + encodeURIComponent(args[k]))
+          }
+          return this.$http.post(`/api/slack/${method}?${q.join('&')}`).then(resp => resp.json())
+        }).catch(this.handlerError)
+      },
+      handleError: function(err) {
+        console.error(err)
+      }
+    }
+  }).$mount("#app")
+
+  window.addEventListener("message", event => {
+    if (event.origin !== location.origin) {
+      return
+    }
+
+    const token = event.data['token'] || null
+    if (!token) {
+      return
+    }
+
+    vm.signInWithCustomToken(token)
+  }, false);
+
+  auth.onAuthStateChanged(user => vm.user = user, vm.handleError)
+}
+</script>
+</head>
+<body>
+    <h1>Firebase Auth Example</h1>
+    <div id="app">
+      <p>User: <span v-if="user"><img v-if="user.photoURL" :src="user.photoURL" width="32px" height="32px">{{user.displayName || user.uid}}</span><span v-else>None</span></p>
+      <p>ID Token: <input v-model="idToken"></p>
+      <p v-if="!user"><button @click="signInWithSlack">Slack Login</button></p>
+      <p v-else><button @click="signOut">Sign Out</button></p>
+
+    </div>
+</body>
+</html>

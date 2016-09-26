@@ -1,0 +1,7 @@
+service firebase.storage {
+  match /b/k2lab-firauth.appspot.com/o {
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,0 +1,48 @@
+runtime: go
+api_version: go1
+threadsafe: true
+
+default_expiration: 1d
+
+instance_class: F1
+automatic_scaling:
+  min_idle_instances: 0
+  max_idle_instances: 1
+  min_pending_latency: automatic
+  max_pending_latency: automatic
+  max_concurrent_requests: 300
+
+handlers:
+- url: /(.+(\.js|\.css))$
+  static_files: app/\1
+  upload: app/(.+(\.js|\.css))$
+  expiration: 10m
+  secure: always
+  http_headers:
+    Access-Control-Allow-Origin: "*"
+- url: /(.+\.html)$
+  static_files: app/\1
+  upload: app/.+\.html$
+  application_readable: true
+  secure: always
+  http_headers:
+    Access-Control-Allow-Origin: "*"
+- url: /(.+\.(ico|txt|mp3))$
+  static_files: app/\1
+  upload: app/(.+\.(ico|txt|mp3))$
+  secure: always
+  http_headers:
+    Access-Control-Allow-Origin: "*"
+- url: /
+  static_files: app/index.html
+  upload: app/index\.html$
+  application_readable: true
+  expiration: 10m
+  secure: always
+- url: /.*
+  script: _go_app
+  secure: always
+
+skip_files:
+- ^(.*/)?\.pem$
+- ^(.*/)?dev\.env$
