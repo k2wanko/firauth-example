@@ -18,6 +18,7 @@ import (
 	"github.com/mjibson/goon"
 
 	"google.golang.org/appengine"
+	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/log"
 	"google.golang.org/appengine/urlfetch"
 
@@ -61,7 +62,13 @@ func handleAuth(w http.ResponseWriter, r *http.Request) {
 	state := base64.URLEncoding.EncodeToString(b)
 
 	s, err := store.Get(r, sessionName)
-	if err != nil {
+	if err != datastore.ErrNoSuchEntity {
+		r.Header.Del("Cookie")
+		s, err = store.Get(r, sessionName)
+		if err != nil {
+			panic(err)
+		}
+	} else if err != nil {
 		panic(err)
 	}
 	s.Values["state"] = state
@@ -118,6 +125,8 @@ func handleAuthHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err)
 	}
+
+	logf(ctx, "token: %s", firTok)
 
 	w.Header().Add("content-type", "text/html")
 	w.WriteHeader(200)

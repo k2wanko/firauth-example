@@ -43,7 +43,7 @@ window.onload = () => {
           }
           const profile = res.user.profile
           return user.updateProfile({
-            displayName: profile.real_name,
+            displayName: res.user.name,
             photoURL: profile.image_original,
           })
         })
